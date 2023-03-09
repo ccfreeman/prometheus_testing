@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  sheep-counter-one:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sheep-counter
+    container_name: sheep-counter-one
+    command:
+      - "python"
+      - "-m"
+      - "sheep_counter"
+    environment:
+      - METRICS_PORT=$METRICS_PORT
+    ports:
+      - 8080:$METRICS_PORT
+
+  sheep-counter-two:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sheep-counter
+    container_name: sheep-counter-two
+    command:
+      - "python"
+      - "-m"
+      - "sheep_counter"
+    environment:
+      - METRICS_PORT=$METRICS_PORT
+    ports:
+      - 8081:$METRICS_PORT
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sheep-counter
+    container_name: app
+    command:
+      - "python"
+      - "-m"
+      - "app"
+    environment:
+      - METRICS_PORT=$METRICS_PORT
+    ports:
+      - 8000:$METRICS_PORT
+
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sheep-counter
+    deploy:
+      replicas: 5
+    command:
+      - "python"
+      - "-m"
+      - "client"
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: always
+    ports:
+      - 9090:9090
+    volumes:
+      - type: bind
+        source: ./prometheus.yml
+        target: /etc/prometheus/prometheus.yml
